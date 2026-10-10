@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnekler ve Boğalar - Sayı Bulmaca & Akıllı Çözücü</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons (CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-glow glow-1"></div>
+    <div class="background-glow glow-2"></div>
+    <div class="background-glow glow-3"></div>
+
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-logo">
+                    <span class="bull-icon">🐂</span>
+                    <span class="cow-icon">🐄</span>
+                </div>
+                <div class="brand-text">
+                    <h1>BULLS <span class="highlight">&</span> COWS</h1>
+                    <span class="subtext">Sayı Bulmaca & Yapay Zeka Çözücü</span>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <button id="btn-sound-toggle" class="icon-button" title="Ses Aç/Kapat">
+                    <i data-lucide="volume-2"></i>
+                </button>
+                <button id="btn-rules" class="icon-button" title="Kurallar & Kılavuz">
+                    <i data-lucide="help-circle"></i>
+                </button>
+                <button id="btn-settings" class="icon-button" title="Oyun Ayarları">
+                    <i data-lucide="settings"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mode Selector Tabs -->
+        <nav class="mode-tabs">
+            <button class="tab-btn active" data-mode="ai-solver">
+                <i data-lucide="cpu"></i>
+                <span>Bilgisayar Çözsün (AI Solver)</span>
+            </button>
+            <button class="tab-btn" data-mode="play-vs-ai">
+                <i data-lucide="gamepad-2"></i>
+                <span>Sen Bul (Oyuncu Modu)</span>
+            </button>
+            <button class="tab-btn" data-mode="analyzer">
+                <i data-lucide="bar-chart-2"></i>
+                <span>Serbest Analizör</span>
+            </button>
+        </nav>
+
+        <!-- Dynamic Game Status Banner -->
+        <div class="status-banner" id="status-banner">
+            <div class="banner-info">
+                <div class="badge-item">
+                    <span class="label">Basamak:</span>
+                    <span class="value" id="badge-digits">4</span>
+                </div>
+                <div class="badge-item">
+                    <span class="label">Rakamlar:</span>
+                    <span class="value" id="badge-duplicates">Benzersiz</span>
+                </div>
+                <div class="badge-item">
+                    <span class="label">Sıfır ile Başlama:</span>
+                    <span class="value" id="badge-zero">İzinli</span>
+                </div>
+            </div>
+            <div class="candidate-counter">
+                <span class="counter-label">Kalan Olası Sayı:</span>
+                <span class="counter-value" id="candidate-count">5040</span>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <!-- MODE 1: AI SOLVER -->
+            <section id="mode-ai-solver" class="mode-section active">
+                <div class="solver-grid">
+                    <!-- Left Panel: Current AI Action & Feedback Input -->
+                    <div class="glass-card main-solver-card">
+                        <div class="card-header">
+                            <h2><i data-lucide="bot"></i> Yapay Zeka Tahmini</h2>
+                            <span class="step-badge" id="ai-step-indicator">1. Hamle</span>
+                        </div>
+
+                        <!-- Auto Secret Mode Bar -->
+                        <div class="auto-secret-bar">
+                            <label for="auto-secret-input">
+                                <i data-lucide="key-round"></i> Otomatik Çözüm İçin Gizli Sayın (İsteğe Bağlı):
+                            </label>
+                            <div class="auto-secret-group">
+                                <input type="password" id="auto-secret-input" maxlength="5" placeholder="örn: 4815" autocomplete="off">
+                                <button id="btn-toggle-secret-visibility" class="small-btn">
+                                    <i data-lucide="eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Big AI Guess Display -->
+                        <div class="ai-guess-box">
+                            <span class="guess-caption">AI'nın Önerdiği Tahmin:</span>
+                            <div class="digit-slots-container" id="ai-digit-slots">
+                                <div class="digit-slot">?</div>
+                                <div class="digit-slot">?</div>
+                                <div class="digit-slot">?</div>
+                                <div class="digit-slot">?</div>
+                            </div>
+                        </div>
+
+                        <!-- User Feedback Entry Section -->
+                        <div class="feedback-input-section" id="feedback-input-section">
+                            <h3>Tahmin İçin Sonucu Girin:</h3>
+                            
+                            <div class="feedback-controls">
+                                <div class="feedback-group bulls-group">
+                                    <label>
+                                        <span class="icon">🐂</span> 
+                                        <strong>Boğa (+ / Doğru Yer):</strong>
+                                    </label>
+                                    <div class="segmented-picker" id="bulls-picker">
+                                        <!-- Dynamically generated buttons 0..N -->
+                                    </div>
+                                </div>
+
+                                <div class="feedback-group cows-group">
+                                    <label>
+                                        <span class="icon">🐄</span> 
+                                        <strong>İnek (- / Yanlış Yer):</strong>
+                                    </label>
+                                    <div class="segmented-picker" id="cows-picker">
+                                        <!-- Dynamically generated buttons 0..N -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="action-buttons">
+                                <button id="btn-submit-feedback" class="primary-btn pulse-glow">
+                                    <i data-lucide="check-circle-2"></i> Sonucu Onayla ve İlerle
+                                </button>
+                                <button id="btn-reset-ai" class="secondary-btn">
+                                    <i data-lucide="rotate-ccw"></i> Yeniden Başlat
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Solver Success / Win Card (Hidden initially) -->
+                        <div id="ai-win-card" class="win-card hidden">
+                            <div class="win-icon">🎉 🐂 🐄</div>
+                            <h2>Sayı Başarıyla Bulundu!</h2>
+                            <p class="win-desc">Yapay Zeka secret sayınızı <strong id="win-step-count">0</strong> hamlede tam olarak çözdü!</p>
+                            <button id="btn-ai-win-restart" class="primary-btn">
+                                <i data-lucide="play"></i> Yeni Sayı İle Başla
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: Step History & Candidate Inspector -->
+                    <div class="solver-side-panel">
+                        <!-- Move History Card -->
+                        <div class="glass-card history-card">
+                            <div class="card-header">
+                                <h3><i data-lucide="history"></i> Hamle Geçmişi</h3>
+                                <button id="btn-undo-ai-step" class="small-btn" title="Son Hamleyi Geri Al" disabled>
+                                    <i data-lucide="undo-2"></i> Geri Al
+                                </button>
+                            </div>
+                            <div class="table-container">
+                                <table class="history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Tahmin</th>
+                                            <th>Boğa (Doğru)</th>
+                                            <th>İnek (Yanlış)</th>
+                                            <th>Kalan Aday</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ai-history-body">
+                                        <!-- History rows inserted dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Candidate Inspector Card -->
+                        <div class="glass-card candidates-card">
+                            <div class="card-header">
+                                <h3><i data-lucide="list"></i> Olası Sayılar Listesi</h3>
+                                <input type="text" id="candidate-search" placeholder="Aday Ara (örn: 12..)" class="small-input">
+                            </div>
+                            <div class="candidate-grid" id="candidate-grid">
+                                <!-- Candidates populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODE 2: PLAY VS AI -->
+            <section id="mode-play-vs-ai" class="mode-section">
+                <div class="game-grid">
+                    <!-- Left: Player Guesses & Input Pad -->
+                    <div class="glass-card player-input-card">
+                        <div class="card-header">
+                            <h2><i data-lucide="user-check"></i> Senin Tahminin</h2>
+                            <button id="btn-new-player-game" class="small-btn">
+                                <i data-lucide="sparkles"></i> Yeni Oyun
+                            </button>
+                        </div>
+
+                        <p class="mode-desc">Aklından tuttuğum sayıyı bulmaya çalış! Her tahminde Boğa (tam yerinde) ve İnek (var ama yeri yanlış) ipuçları alacaksın.</p>
+
+                        <!-- Player Active Guess Digit Slots -->
+                        <div class="player-guess-slots" id="player-digit-slots">
+                            <!-- Slots created dynamically -->
+                        </div>
+
+                        <!-- On-Screen Keypad -->
+                        <div class="keypad-container">
+                            <div class="keypad-grid" id="keypad">
+                                <button class="key-btn" data-key="1">1</button>
+                                <button class="key-btn" data-key="2">2</button>
+                                <button class="key-btn" data-key="3">3</button>
+                                <button class="key-btn" data-key="4">4</button>
+                                <button class="key-btn" data-key="5">5</button>
+                                <button class="key-btn" data-key="6">6</button>
+                                <button class="key-btn" data-key="7">7</button>
+                                <button class="key-btn" data-key="8">8</button>
+                                <button class="key-btn" data-key="9">9</button>
+                                <button class="key-btn danger-key" data-key="backspace">
+                                    <i data-lucide="delete"></i>
+                                </button>
+                                <button class="key-btn" data-key="0">0</button>
+                                <button class="key-btn success-key" data-key="enter">
+                                    <i data-lucide="corner-down-left"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="player-actions">
+                            <button id="btn-player-hint" class="hint-btn">
+                                <i data-lucide="lightbulb"></i> AI İpucu İste
+                            </button>
+                            <button id="btn-player-reveal" class="secondary-btn">
+                                <i data-lucide="eye-off"></i> Pes Et / Sayıyı Göster
+                            </button>
+                        </div>
+
+                        <div id="player-hint-box" class="hint-box hidden">
+                            <i data-lucide="sparkles"></i> <span id="hint-text"></span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Player Guess History Timeline -->
+                    <div class="glass-card player-history-card">
+                        <div class="card-header">
+                            <h2><i data-lucide="list-checks"></i> Tahmin Geçmişin</h2>
+                            <span class="step-badge" id="player-step-counter">0 Tahmin</span>
+                        </div>
+
+                        <div class="timeline-container" id="player-timeline">
+                            <div class="empty-state">Henüz bir tahmin yapmadın. Sayıları girerek başla!</div>
+                        </div>
+
+                        <!-- Player Victory Modal Card -->
+                        <div id="player-win-card" class="win-card hidden">
+                            <div class="win-icon">🏆 🥇 🐂</div>
+                            <h2>Tebrikler, Kazandın!</h2>
+                            <p class="win-desc">Gizli sayıyı <strong id="player-win-steps">0</strong> tahminde buldun!</p>
+                            <button id="btn-player-win-restart" class="primary-btn">
+                                <i data-lucide="rotate-ccw"></i> Yeniden Oyna
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODE 3: ANALYZER -->
+            <section id="mode-analyzer" class="mode-section">
+                <div class="glass-card analyzer-card">
+                    <div class="card-header">
+                        <h2><i data-lucide="calculator"></i> Serbest Sayı Bulmaca Analizörü</h2>
+                        <button id="btn-clear-analyzer" class="small-btn">
+                            <i data-lucide="trash-2"></i> Temizle
+                        </button>
+                    </div>
+
+                    <p class="mode-desc">Önceki hamlelerinizi ve aldığınız Boğa / İnek cevaplarını aşağıya ekleyin. Algoritma geriye kalan tüm olası gizli sayıları ve bir sonraki ideal hamleyi hesaplasın.</p>
+
+                    <div class="analyzer-builder">
+                        <div class="builder-inputs">
+                            <div class="input-field">
+                                <label>Tahmin Edilen Sayı:</label>
+                                <input type="text" id="analyzer-guess-input" placeholder="örn: 1234" maxlength="5">
+                            </div>
+                            <div class="input-field">
+                                <label>Boğa (+):</label>
+                                <input type="number" id="analyzer-bulls-input" min="0" max="5" value="0">
+                            </div>
+                            <div class="input-field">
+                                <label>İnek (-):</label>
+                                <input type="number" id="analyzer-cows-input" min="0" max="5" value="0">
+                            </div>
+                            <button id="btn-add-analyzer-row" class="primary-btn">
+                                <i data-lucide="plus"></i> Hamle Ekle
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="analyzer-results-grid">
+                        <div class="analyzer-moves-table-wrap">
+                            <h3>Girilen Hamleler</h3>
+                            <table class="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tahmin</th>
+                                        <th>Boğa</th>
+                                        <th>İnek</th>
+                                        <th>İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analyzer-history-body">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="analyzer-solutions-wrap">
+                            <h3>Geriye Kalan Olası Çözümler (<span id="analyzer-cand-count">0</span>)</h3>
+                            <div class="candidate-grid" id="analyzer-candidate-grid">
+                                <!-- Dynamic candidates -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: Settings -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i data-lucide="sliders"></i> Oyun Ayarları</h2>
+                <button class="close-modal-btn" data-close="settings-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label>Basamak Sayısı</label>
+                        <span class="setting-desc">Çözülecek veya tahmin edilecek sayının uzunluğu.</span>
+                    </div>
+                    <div class="segmented-control" id="digit-length-selector">
+                        <button class="segment-btn" data-val="3">3</button>
+                        <button class="segment-btn active" data-val="4">4</button>
+                        <button class="segment-btn" data-val="5">5</button>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label>Rakamlar Tekrarlanabilir mi?</label>
+                        <span class="setting-desc">Standart oyunda rakamlar benzersizdir (örn: 1234). Açılırsa 1123 gibi sayılar da kabul edilir.</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="setting-allow-duplicates">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label>Sıfır (0) ile Başlayabilir mi?</label>
+                        <span class="setting-desc">Açılırsa '0123' gibi sayılar geçerli kabul edilir.</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="setting-allow-leading-zero" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-settings" class="primary-btn">
+                    <i data-lucide="check"></i> Ayarları Kaydet & Yeni Oyuna Başla
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Rules & Guide -->
+    <div id="rules-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i data-lucide="book-open"></i> İnekler ve Boğalar Kuralları</h2>
+                <button class="close-modal-btn" data-close="rules-modal">&times;</button>
+            </div>
+            <div class="modal-body rules-content">
+                <h3>Oyunun Amacı</h3>
+                <p>Gizli belirlenen $N$ basamaklı sayıyı en az hamlede tahmin etmektir.</p>
+                
+                <div class="rule-box bull-box">
+                    <span class="rule-icon">🐂</span>
+                    <div>
+                        <strong>Boğa (+ / Plus):</strong>
+                        <p>Tahmininizdeki bir rakam gizli sayıda var VE tam olarak doğru basamaktaysa 1 Boğa kazanırsınız.</p>
+                    </div>
+                </div>
+
+                <div class="rule-box cow-box">
+                    <span class="rule-icon">🐄</span>
+                    <div>
+                        <strong>İnek (- / Minus):</strong>
+                        <p>Tahmininizdeki bir rakam gizli sayıda var AMA yanlış bir basamaktaysa 1 İnek kazanırsınız.</p>
+                    </div>
+                </div>
+
+                <h3>Örnek Senaryo:</h3>
+                <p>Gizli Sayı: <code>4 8 1 5</code></p>
+                <ul>
+                    <li>Tahmin: <code>1 8 3 4</code> &rarr; <strong>1 Boğa</strong> (8 doğru yerde), <strong>2 İnek</strong> (1 ve 4 var ama yanlış yerde).</li>
+                    <li>Tahmin: <code>4 8 1 5</code> &rarr; <strong>4 Boğa, 0 İnek</strong> &rarr; KAZANDINIZ! 🏆</li>
+                </ul>
+
+                <h3>Yapay Zeka Çözücü Nasıl Çalışır?</h3>
+                <p>Uygulamamız Donald Knuth'un Minimax / Entropi bilgi teorisi algoritmasını kullanır. Her adımda olası tüm adayları filtreler ve geriye kalan aday sayısını en hızlı şekilde sıfıra düşürecek matematiksel olarak en optimal tahmini yapar!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
